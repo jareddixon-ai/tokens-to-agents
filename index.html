@@ -1,0 +1,1436 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Tokens to Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #E6EBEE;
+    --panel: #FBFCFD;
+    --panel-2: #F1F5F7;
+    --ink: #111820;
+    --ink-2: #4E5A66;
+    --ink-3: #7A8792;
+    --rule: #C9D3DA;
+    --rule-soft: #DDE4E9;
+    --accent: #1F45C4;
+    --accent-ink: #1F45C4;
+    --accent-soft: #DFE5FA;
+    --on-accent: #FFFFFF;
+    --signal: #9A5B00;
+    --good: #16704A;
+    --good-soft: #DCEDE4;
+    --bad: #A32C22;
+    --bad-soft: #F6E1DE;
+    --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --f-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --shadow: 0 1px 2px rgba(17, 24, 32, .05), 0 8px 24px -16px rgba(17, 24, 32, .28);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1319;
+      --panel: #161D25;
+      --panel-2: #1B232C;
+      --ink: #E3EAF1;
+      --ink-2: #9BA8B4;
+      --ink-3: #74838F;
+      --rule: #2A343E;
+      --rule-soft: #212A33;
+      --accent: #93AAFF;
+      --accent-ink: #B3C3FF;
+      --accent-soft: #1B2440;
+      --on-accent: #0E1319;
+      --signal: #E1A94B;
+      --good: #6FD1A2;
+      --good-soft: #14301F;
+      --bad: #F0928A;
+      --bad-soft: #35191A;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1319;
+    --panel: #161D25;
+    --panel-2: #1B232C;
+    --ink: #E3EAF1;
+    --ink-2: #9BA8B4;
+    --ink-3: #74838F;
+    --rule: #2A343E;
+    --rule-soft: #212A33;
+    --accent: #93AAFF;
+    --accent-ink: #B3C3FF;
+    --accent-soft: #1B2440;
+    --on-accent: #0E1319;
+    --signal: #E1A94B;
+    --good: #6FD1A2;
+    --good-soft: #14301F;
+    --bad: #F0928A;
+    --bad-soft: #35191A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -18px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 28px 96px;
+    align-items: start;
+  }
+
+  /* ---- rail ---- */
+  .rail { position: sticky; top: 28px; font-family: var(--f-mono); font-size: 12.5px; }
+  .rail-mark {
+    font-family: var(--f-display);
+    font-size: 19px;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+  .rail-sub { color: var(--ink-3); margin: 0 0 20px; letter-spacing: .01em; }
+  .rail nav { display: flex; flex-direction: column; border-top: 1px solid var(--rule); }
+  .rail nav a {
+    display: grid;
+    grid-template-columns: 22px 1fr 10px;
+    align-items: baseline;
+    gap: 8px;
+    padding: 9px 2px;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+    text-decoration: none;
+    line-height: 1.35;
+  }
+  .rail nav a:hover { color: var(--accent-ink); }
+  .rail nav a .num { color: var(--signal); font-weight: 500; }
+  .rail nav a .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    border: 1px solid var(--rule); align-self: center;
+  }
+  .rail nav a.done .dot { background: var(--good); border-color: var(--good); }
+  .rail-note { color: var(--ink-3); margin-top: 16px; line-height: 1.5; }
+
+  /* ---- header ---- */
+  header.masthead { margin-bottom: 34px; }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin: 0 0 12px;
+  }
+  h1 {
+    font-family: var(--f-display);
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(38px, 6vw, 56px);
+    line-height: 1.02;
+    letter-spacing: -.02em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 34em;
+    margin: 0;
+  }
+
+  /* ---- ask panel ---- */
+  .ask {
+    margin: 32px 0 44px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .ask-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--rule-soft);
+    background: var(--panel-2);
+  }
+  .ask-head h2 {
+    font-family: var(--f-body); font-size: 14px; font-weight: 600; margin: 0; letter-spacing: -.005em;
+  }
+  .ask-head .state { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); }
+  .ask-body { padding: 16px 18px 18px; }
+  .transcript { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+  .transcript:empty { display: none; }
+  .turn { font-size: 15.5px; }
+  .turn .who {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); display: block; margin-bottom: 3px;
+  }
+  .turn.you .body { color: var(--ink); font-weight: 500; }
+  .turn.ai .body { color: var(--ink-2); white-space: pre-wrap; }
+  .turn.ai .body strong { color: var(--ink); }
+  .ask-row { display: flex; gap: 8px; align-items: flex-end; }
+  textarea#q {
+    flex: 1; resize: vertical; min-height: 46px; max-height: 200px;
+    font: inherit; font-size: 15.5px;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 11px 12px;
+  }
+  textarea#q::placeholder { color: var(--ink-3); }
+  button {
+    font-family: var(--f-body); font-size: 14px; font-weight: 500;
+    border-radius: 3px; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--on-accent); border-color: var(--accent);
+    padding: 12px 18px;
+  }
+  .btn-primary[disabled] { opacity: .5; cursor: default; }
+  .btn-ghost {
+    background: transparent; color: var(--ink-2); border-color: var(--rule);
+    padding: 12px 14px;
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-3); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chip {
+    font-family: var(--f-mono); font-size: 11.5px;
+    background: var(--panel-2); color: var(--ink-2);
+    border: 1px solid var(--rule-soft); border-radius: 999px; padding: 5px 11px;
+  }
+  .chip:hover { color: var(--accent-ink); border-color: var(--accent); }
+  .ask-foot { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); margin-top: 12px; }
+
+  /* ---- modules ---- */
+  section.module { padding-top: 18px; margin-bottom: 56px; scroll-margin-top: 24px; }
+  .mod-head { border-top: 2px solid var(--ink); padding-top: 14px; margin-bottom: 20px; }
+  .mod-num {
+    font-family: var(--f-mono); font-size: 11.5px; letter-spacing: .14em;
+    color: var(--signal); display: block; margin-bottom: 8px;
+  }
+  h2.mod-title {
+    font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 3.4vw, 33px);
+    line-height: 1.12; letter-spacing: -.018em; margin: 0 0 8px; text-wrap: balance;
+  }
+  .mod-blurb { color: var(--ink-2); margin: 0; max-width: 36em; }
+  .module p, .module li { max-width: 38em; }
+  h3 {
+    font-family: var(--f-body); font-size: 16.5px; font-weight: 600; letter-spacing: -.005em;
+    margin: 28px 0 6px;
+  }
+  .module p { margin: 0 0 14px; }
+  .module ul { padding-left: 18px; margin: 0 0 14px; }
+  .module li { margin-bottom: 7px; }
+  .module li::marker { color: var(--ink-3); }
+  code, .kbd {
+    font-family: var(--f-mono); font-size: .88em;
+    background: var(--panel-2); border: 1px solid var(--rule-soft);
+    border-radius: 3px; padding: 1px 5px;
+  }
+  .term { font-weight: 600; color: var(--ink); }
+
+  .aside {
+    border-left: 2px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 13px 16px; margin: 18px 0 20px; border-radius: 0 3px 3px 0;
+    max-width: 38em;
+  }
+  .aside p { margin: 0; font-size: 15px; }
+  .aside .label {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent-ink); display: block; margin-bottom: 4px;
+  }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 20px; max-width: 40em; }
+  .compare > div { border: 1px solid var(--rule); border-radius: 3px; padding: 12px 14px; background: var(--panel); }
+  .compare .h {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .compare .weak .h { color: var(--bad); }
+  .compare .strong .h { color: var(--good); }
+  .compare p { font-size: 14.5px; margin: 0; color: var(--ink-2); }
+
+  /* token demo */
+  .demo { border: 1px solid var(--rule); border-radius: 4px; background: var(--panel); padding: 15px 16px; margin: 18px 0 22px; max-width: 40em; }
+  .demo-label {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: 10px;
+  }
+  .demo input {
+    width: 100%; font: inherit; font-size: 15px; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 9px 11px; margin-bottom: 12px;
+  }
+  .tokens { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 10px; }
+  .tok {
+    font-family: var(--f-mono); font-size: 12.5px; padding: 3px 6px; border-radius: 2px;
+    background: var(--accent-soft); color: var(--ink); border: 1px solid var(--rule-soft);
+    white-space: pre;
+  }
+  .tok:nth-child(even) { background: var(--panel-2); }
+  .demo-count { font-family: var(--f-mono); font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  /* ladder */
+  ol.ladder { list-style: none; counter-reset: rung; padding: 0; margin: 18px 0 22px; max-width: 40em; }
+  ol.ladder li {
+    counter-increment: rung;
+    display: grid; grid-template-columns: 30px 1fr; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--rule-soft); max-width: none;
+  }
+  ol.ladder li::before {
+    content: counter(rung);
+    font-family: var(--f-mono); font-size: 12px; color: var(--signal);
+    padding-top: 3px;
+  }
+  ol.ladder b { display: block; font-weight: 600; }
+  ol.ladder span { color: var(--ink-2); font-size: 15px; }
+
+  figure.diagram { margin: 20px 0 24px; max-width: 40em; }
+  figure.diagram svg { width: 100%; height: auto; display: block; }
+  figcaption { font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+
+  /* quiz */
+  .quiz {
+    border: 1px solid var(--rule); border-left: 2px solid var(--signal);
+    border-radius: 0 4px 4px 0; background: var(--panel);
+    padding: 16px 18px; margin: 26px 0 0; max-width: 40em;
+  }
+  .quiz-label {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--signal); margin-bottom: 12px;
+  }
+  .qa + .qa { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--rule-soft); }
+  .qa .q { font-weight: 600; margin: 0 0 9px; max-width: none; }
+  .opts { display: flex; flex-direction: column; gap: 6px; }
+  .opt {
+    text-align: left; font-size: 15px; font-weight: 400; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--rule); border-radius: 3px;
+    padding: 9px 12px; line-height: 1.45;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.right { background: var(--good-soft); border-color: var(--good); }
+  .opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+  .why {
+    font-size: 14.5px; color: var(--ink-2); margin: 9px 0 0; padding-left: 11px;
+    border-left: 2px solid var(--rule);
+  }
+  .why[hidden] { display: none; }
+
+  .ask-inline {
+    font-family: var(--f-mono); font-size: 11.5px; background: transparent;
+    color: var(--ink-3); border: 1px dashed var(--rule); padding: 6px 11px; border-radius: 999px;
+    margin-top: 18px;
+  }
+  .ask-inline:hover { color: var(--accent-ink); border-color: var(--accent); }
+
+  /* flashcards */
+  .deckbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 16px; }
+  .deckbtn {
+    font-family: var(--f-mono); font-size: 12px;
+    background: var(--panel); color: var(--ink-2);
+    border: 1px solid var(--rule); border-radius: 3px; padding: 7px 12px;
+  }
+  .deckbtn:hover { color: var(--ink); border-color: var(--ink-3); }
+  .deckbtn[aria-pressed="true"] {
+    background: var(--ink); color: var(--bg); border-color: var(--ink);
+  }
+  .deckbtn .n { color: inherit; opacity: .6; margin-left: 6px; }
+
+  .cardstage { max-width: 40em; perspective: 1600px; }
+  .flip {
+    display: block; width: 100%; text-align: left; padding: 0; background: none; border: 0;
+    cursor: pointer; font: inherit; color: inherit;
+  }
+  /* Both faces sit in the SAME grid cell, so the card is always as tall as
+     the longer side — nothing is ever clipped or scrolled. */
+  .flip-inner {
+    display: grid; width: 100%;
+    transform-style: preserve-3d;
+    transition: transform .42s cubic-bezier(.2, .7, .2, 1);
+  }
+  .flip.flipped .flip-inner { transform: rotateX(180deg); }
+  .face {
+    grid-area: 1 / 1;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    border: 1px solid var(--rule); border-radius: 5px; background: var(--panel);
+    box-shadow: var(--shadow);
+    padding: 20px 22px 18px;
+    display: flex; flex-direction: column; justify-content: center; gap: 10px;
+    min-height: 190px;
+  }
+  .face.back { transform: rotateX(180deg); background: var(--panel-2); }
+  .face .kind {
+    font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .face.back .kind { color: var(--accent-ink); }
+  .face .front-text {
+    font-family: var(--f-display); font-weight: 500;
+    font-size: clamp(20px, 2.4vw, 25px); line-height: 1.22;
+    letter-spacing: -.015em; margin: 0; text-wrap: balance; color: var(--ink);
+    overflow-wrap: break-word; hyphens: auto;
+  }
+  .face .back-text {
+    font-size: clamp(15px, 1.7vw, 16.5px); line-height: 1.55; margin: 0; color: var(--ink);
+    overflow-wrap: break-word;
+  }
+  .face .hint {
+    font-family: var(--f-mono); font-size: 10.5px; color: var(--ink-3); margin-top: auto;
+  }
+  .deck-controls {
+    display: flex; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap;
+  }
+  .deck-controls .count {
+    font-family: var(--f-mono); font-size: 12px; color: var(--ink-3);
+    font-variant-numeric: tabular-nums; margin-left: auto;
+  }
+  .mini {
+    font-family: var(--f-mono); font-size: 12px; padding: 8px 12px;
+    background: var(--panel); color: var(--ink-2); border: 1px solid var(--rule); border-radius: 3px;
+  }
+  .mini:hover { color: var(--ink); border-color: var(--ink-3); }
+  .mini.got { color: var(--good); border-color: var(--good); }
+  .mini.again { color: var(--signal); border-color: var(--signal); }
+
+  .card-list { margin-top: 22px; border-top: 1px solid var(--rule); max-width: 40em; }
+  .card-list[hidden] { display: none; }
+  .card-list .row {
+    display: grid; grid-template-columns: 15em 1fr; gap: 16px;
+    padding: 11px 0; border-bottom: 1px solid var(--rule-soft);
+  }
+  .card-list .row b { font-weight: 600; }
+  .card-list .row span { color: var(--ink-2); font-size: 15px; }
+
+  /* glossary */
+  .glossary { display: grid; gap: 0; max-width: 40em; margin-top: 6px; }
+  .gl {
+    display: grid; grid-template-columns: 160px 1fr; gap: 16px;
+    padding: 10px 0; border-bottom: 1px solid var(--rule-soft);
+  }
+  .gl dt { font-family: var(--f-mono); font-size: 13px; color: var(--ink); }
+  .gl dd { margin: 0; color: var(--ink-2); font-size: 15px; }
+
+  footer.end {
+    margin-top: 20px; padding-top: 18px; border-top: 2px solid var(--ink);
+    font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3);
+  }
+
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; gap: 24px; padding: 28px 20px 72px; }
+    .rail { position: static; }
+    .rail nav { display: grid; grid-template-columns: 1fr 1fr; }
+    .compare { grid-template-columns: 1fr; }
+    .gl { grid-template-columns: 1fr; gap: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <aside class="rail">
+    <p class="rail-mark">Tokens to Agents</p>
+    <p class="rail-sub">A ground-up course</p>
+    <nav id="toc">
+      <a href="#m1" data-mod="m1"><span class="num">01</span><span>The machine</span><span class="dot"></span></a>
+      <a href="#m2" data-mod="m2"><span class="num">02</span><span>Prompting</span><span class="dot"></span></a>
+      <a href="#m3" data-mod="m3"><span class="num">03</span><span>Context &amp; RAG</span><span class="dot"></span></a>
+      <a href="#m4" data-mod="m4"><span class="num">04</span><span>Tools &amp; agents</span><span class="dot"></span></a>
+      <a href="#m5" data-mod="m5"><span class="num">05</span><span>Building it</span><span class="dot"></span></a>
+      <a href="#m6" data-mod="m6"><span class="num">06</span><span>Trust &amp; judgment</span><span class="dot"></span></a>
+      <a href="#m7" data-mod="m7"><span class="num">07</span><span>Staying current</span><span class="dot"></span></a>
+      <a href="#cards" data-mod="cards"><span class="num">◆</span><span>Flashcards</span><span class="dot"></span></a>
+      <a href="#glossary" data-mod="gl"><span class="num">—</span><span>Glossary</span><span class="dot"></span></a>
+    </nav>
+    <p class="rail-note">Dots fill in as you answer each module's checks. Order matters: every module leans on the one before it.</p>
+  </aside>
+
+  <main>
+    <header class="masthead">
+      <p class="eyebrow">Start here · no background assumed</p>
+      <h1>What AI actually is, and how to build with it</h1>
+      <p class="standfirst">Seven modules, in order, from "what is a token" to "here is your first agent." Plain language, no math, working examples. Ask the tutor below anything at any point — it reads your question live.</p>
+    </header>
+
+    <section class="ask" id="ask">
+      <div class="ask-head">
+        <h2>Ask the tutor</h2>
+        <span class="state" id="askState">ready</span>
+      </div>
+      <div class="ask-body">
+        <div class="transcript" id="transcript"></div>
+        <div class="ask-row">
+          <textarea id="q" rows="1" placeholder="e.g. What&rsquo;s the difference between an API and a chatbot?"></textarea>
+          <button class="btn-primary" id="send">Ask</button>
+          <button class="btn-ghost" id="stop" hidden>Stop</button>
+        </div>
+        <div class="chips">
+          <button class="chip" data-ask="Explain what a large language model is as if I've never used a computer beyond email.">explain LLMs simply</button>
+          <button class="chip" data-ask="Quiz me with one multiple-choice question about AI fundamentals. Give me the options, wait for my answer, and don't reveal the answer yet.">quiz me</button>
+          <button class="chip" data-ask="I have no coding background. What's the first thing I should actually build with AI this week? Be specific.">what should I build first?</button>
+          <button class="chip" data-ask="Explain GitHub to me like I've never written code: what a repo, commit, branch, pull request, and Action are, and why I'd care.">GitHub, from zero</button>
+        </div>
+        <p class="ask-foot">Runs on your own Claude account. First question asks your permission.</p>
+      </div>
+    </section>
+
+    <!-- 01 -->
+    <section class="module" id="m1" data-mod="m1">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 01</span>
+        <h2 class="mod-title">The machine: what a language model is really doing</h2>
+        <p class="mod-blurb">Everything else in this course makes sense only once this part is right. Most people's mistakes with AI come from a wrong mental model here.</p>
+      </div>
+
+      <p>A large language model (an <span class="term">LLM</span> — the thing behind ChatGPT, Claude, Gemini) is not a database and it does not look things up. It does exactly one thing, over and over, extremely fast: <strong>given all the text so far, guess the next small piece of text.</strong> Then it adds that piece and guesses again.</p>
+
+      <p>Those small pieces are <span class="term">tokens</span>. A token is roughly a word or a chunk of one — "unbelievable" might be three tokens, "the" is one, a space counts too. Everything is measured in tokens: what you send, what it writes back, and what you pay.</p>
+
+      <div class="demo">
+        <div class="demo-label">Rough tokenizer — type anything</div>
+        <input id="tokIn" type="text" value="Rewrite my résumé for a logistics job." aria-label="Text to split into tokens">
+        <div class="tokens" id="tokOut"></div>
+        <div class="demo-count" id="tokCount"></div>
+      </div>
+
+      <p>The model learned to make these guesses by reading an enormous amount of text and adjusting billions of internal numbers (<span class="term">weights</span>) until its guesses got good. That process is <span class="term">training</span>, it happened once, it cost a fortune, and it is finished. When you talk to the model, that is <span class="term">inference</span> — the weights are frozen. This is why a model has a <span class="term">knowledge cutoff</span>: it only absorbed text up to a certain date, and it does not learn from your conversation.</p>
+
+      <h3>The context window is the whole world</h3>
+      <p>At the moment it answers, the model can see one thing: the <span class="term">context window</span> — your current conversation, plus any files or instructions attached to it. That's it. No memory of yesterday unless something re-inserts it. Context windows are large now (hundreds of thousands of tokens, a few novels' worth) but finite: overflow the window and the oldest material falls out. That is why a very long chat starts "forgetting" the beginning, and why starting a fresh chat for a new task often works better than continuing a bloated one.</p>
+
+      <div class="aside">
+        <span class="label">The one-sentence version</span>
+        <p>A model is a frozen next-token guesser, and the context window is its entire universe at answer time. Nearly every practical AI skill is really the skill of deciding what goes in that window.</p>
+      </div>
+
+      <h3>Why the same question gives different answers</h3>
+      <p>At each step the model has a ranked list of plausible next tokens. Rather than always taking the top one, it samples from that list — the amount of randomness is <span class="term">temperature</span>. Low temperature: repetitive, predictable, good for extraction and code. Higher: more varied, good for brainstorming. In most chat apps this is set for you; in the API you control it.</p>
+
+      <div class="quiz" data-quiz="m1">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="1">
+          <p class="q">When a model answers a factual question, what is it fundamentally doing?</p>
+          <div class="opts">
+            <button class="opt">Searching a database of facts it stores</button>
+            <button class="opt">Predicting likely next tokens, one after another</button>
+            <button class="opt">Querying the live web</button>
+          </div>
+          <p class="why" hidden>It generates plausible continuations. Correct facts come out because true statements were overwhelmingly common in training — which is also exactly why confident wrong ones can come out too.</p>
+        </div>
+        <div class="qa" data-a="1">
+          <p class="q">You paste a long report, chat for an hour, and it starts contradicting page one. Why?</p>
+          <div class="opts">
+            <button class="opt">The model got tired and needs a restart</button>
+            <button class="opt">Early material fell out of the context window</button>
+            <button class="opt">It deleted the file for privacy</button>
+          </div>
+          <p class="why" hidden>Context is finite and first-in-first-out at the edges. Fix: start fresh and re-paste only the part that matters, or ask for a summary to carry forward.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="I just read that an LLM predicts the next token and has a context window. Ask me one question to check I really understood it, then tell me if I'm right.">Have the tutor test me on this →</button>
+    </section>
+
+    <!-- 02 -->
+    <section class="module" id="m2" data-mod="m2">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 02</span>
+        <h2 class="mod-title">Prompting: the only interface skill that compounds</h2>
+        <p class="mod-blurb">Prompting is not magic words. It is telling a very capable, very literal stranger what you want — one who has no idea who you are or what "good" looks like for you.</p>
+      </div>
+
+      <p>Weak prompts fail for a boring reason: they under-specify. The model fills the gaps with the statistical average of everything it read, which is why unspecified output feels generic. Four levers fix nearly everything.</p>
+
+      <ul>
+        <li><strong>Goal</strong> — what you want, and what it's for. "A 150-word LinkedIn post announcing our new warehouse, aimed at existing customers."</li>
+        <li><strong>Context</strong> — the raw material. Paste the actual notes, the actual data, the actual email you're replying to. This is the single highest-return move in all of prompting.</li>
+        <li><strong>Examples</strong> — one or two samples of the output you consider good. Called <span class="term">few-shot</span> prompting. Showing beats describing every time.</li>
+        <li><strong>Format &amp; constraints</strong> — length, structure, tone, what to leave out. "Three bullets, no adjectives, end with a question."</li>
+      </ul>
+
+      <div class="compare">
+        <div class="weak">
+          <div class="h">Under-specified</div>
+          <p>"Write a follow-up email to a client who hasn't replied."</p>
+        </div>
+        <div class="strong">
+          <div class="h">Specified</div>
+          <p>"Here's my last email [pasted]. Write a 60-word follow-up, second attempt, friendly not needy, offer one concrete next step: a 15-min call Thursday. No 'just circling back.'"</p>
+        </div>
+      </div>
+
+      <h3>Things that work</h3>
+      <ul>
+        <li><strong>Give it a job, not a personality.</strong> "You are an editor cutting for concision" changes output. "You are a world-class genius" mostly doesn't.</li>
+        <li><strong>Let it think before answering</strong> on hard problems: "work through it step by step, then give the answer." Reasoning in the output actually improves the answer, because each token it writes becomes part of the context for the next one.</li>
+        <li><strong>Iterate out loud.</strong> The second and third messages ("too formal, cut it in half, keep the last line") are where quality comes from. Treat it as a conversation, not a vending machine.</li>
+        <li><strong>Ask it to ask you.</strong> "Before you write, ask me the three questions you most need answered." Cheap, and it surfaces what you forgot to say.</li>
+      </ul>
+
+      <h3>Things that don't</h3>
+      <ul>
+        <li>"Don't hallucinate" / "only true facts." It has no separate truth switch. Supplying source material does the real work.</li>
+        <li>Threats, bribes, ALL CAPS, elaborate personas. Marginal at best.</li>
+        <li>Negative-only instructions. "Don't be formal" is weaker than "write like a text to a colleague."</li>
+        <li>Copying a 900-word "mega-prompt" off social media for a 20-word task.</li>
+      </ul>
+
+      <div class="aside">
+        <span class="label">Habit to build</span>
+        <p>When output disappoints, don't rewrite the prompt from scratch — diagnose. Was the goal vague, the context missing, the format unstated, or the example absent? One of those four is nearly always the culprit.</p>
+      </div>
+
+      <div class="quiz" data-quiz="m2">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="2">
+          <p class="q">Which change most reliably improves a mediocre result?</p>
+          <div class="opts">
+            <button class="opt">Adding "you are a world-class expert" to the top</button>
+            <button class="opt">Adding "please" and "thank you"</button>
+            <button class="opt">Pasting in the real source material and one example of good output</button>
+          </div>
+          <p class="why" hidden>Context and examples beat framing. The model can only work with what's in the window.</p>
+        </div>
+        <div class="qa" data-a="1">
+          <p class="q">You add "do not make anything up" to your prompt. What does that reliably do?</p>
+          <div class="opts">
+            <button class="opt">Guarantees factual accuracy</button>
+            <button class="opt">Very little — it can't check itself; give it sources instead</button>
+            <button class="opt">Switches the model to a verified-facts mode</button>
+          </div>
+          <p class="why" hidden>It slightly nudges toward hedging, nothing more. Grounding it in supplied documents, and asking it to quote them, is what actually reduces invention.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Here's a prompt I might write: 'summarize this meeting.' Show me how to rewrite it properly using goal, context, examples and format, and explain each change.">Show me a rewrite, step by step →</button>
+    </section>
+
+    <!-- 03 -->
+    <section class="module" id="m3" data-mod="m3">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 03</span>
+        <h2 class="mod-title">Context engineering: giving it your world</h2>
+        <p class="mod-blurb">The model knows the internet up to a date. It knows nothing about your files, your customers, or last Tuesday. Closing that gap is the discipline that separates a toy from a tool.</p>
+      </div>
+
+      <p>Since the context window is everything the model can see, the real job is: <em>get the right material into it, and nothing else.</em> That's <span class="term">context engineering</span>. It's now a bigger skill than prompt wording.</p>
+
+      <h3>The ladder of options, cheapest first</h3>
+      <ol class="ladder">
+        <li><b>Paste it in</b><span>Ten pages of source material in the chat. Unglamorous, instant, and enough for most personal work.</span></li>
+        <li><b>Attach files or a project</b><span>Most chat apps let you upload documents or keep a persistent "project" with standing instructions and reference files. This is where most people should live.</span></li>
+        <li><b>Retrieval (RAG)</b><span>For material too big to paste — thousands of documents. The system finds the handful of relevant passages and inserts only those.</span></li>
+        <li><b>Live tools</b><span>Let it call a search engine, your database, or an app for fresh information at answer time. Covered in module 04.</span></li>
+        <li><b>Fine-tuning</b><span>Actually adjusting the model's weights on your examples. Expensive, slow, mostly teaches <em>style and format</em>, not facts. Almost never your first move.</span></li>
+      </ol>
+
+      <h3>How RAG works, without jargon</h3>
+      <p><span class="term">RAG</span> means Retrieval-Augmented Generation, which is a heavy name for a simple trick: <strong>look up relevant text, then paste it into the prompt automatically.</strong></p>
+      <p>The lookup is the interesting part. Rather than keyword matching, each chunk of your documents is converted into an <span class="term">embedding</span>: a long list of numbers that encodes meaning, so that "cancel my subscription" and "how do I stop being billed" land near each other even with no shared words. Those numbers live in a <span class="term">vector database</span>. At question time, your question becomes numbers too, the nearest chunks come back, and they get slipped into the context window before the model answers.</p>
+
+      <div class="aside">
+        <span class="label">Why this matters to you</span>
+        <p>"Chat with your documents" products are all this. Knowing it's just automated pasting tells you why they fail: if retrieval grabs the wrong three paragraphs, the model answers confidently from the wrong three paragraphs. When a RAG tool is wrong, suspect the retrieval, not the model.</p>
+      </div>
+
+      <h3>Less is more</h3>
+      <p>Stuffing the window with everything you own degrades answers. Irrelevant material dilutes attention and buries the important line in the middle, where models attend least reliably. Curate: the ten right pages beat the thousand available ones.</p>
+
+      <div class="quiz" data-quiz="m3">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="1">
+          <p class="q">In one sentence, RAG is:</p>
+          <div class="opts">
+            <button class="opt">Retraining the model on your company's data</button>
+            <button class="opt">Automatically finding relevant passages and inserting them into the prompt</button>
+            <button class="opt">A faster kind of model</button>
+          </div>
+          <p class="why" hidden>The model is untouched. Only the context changes — which is why RAG is cheap, updatable, and can cite sources.</p>
+        </div>
+        <div class="qa" data-a="0">
+          <p class="q">An embedding is best described as:</p>
+          <div class="opts">
+            <button class="opt">Text turned into numbers that place its meaning in space</button>
+            <button class="opt">A compressed copy of a document</button>
+            <button class="opt">A permanent memory the model keeps</button>
+          </div>
+          <p class="why" hidden>Similar meanings get similar number-lists, so "nearby in that space" ≈ "about the same thing." That's what makes semantic search possible.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Walk me through, concretely, what happens between me typing a question and getting an answer in a 'chat with your PDF' tool. Name each step.">Trace a real RAG query for me →</button>
+    </section>
+
+    <!-- 04 -->
+    <section class="module" id="m4" data-mod="m4">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 04</span>
+        <h2 class="mod-title">Tools and agents: giving the model hands</h2>
+        <p class="mod-blurb">Everything so far produces text. This module is where AI starts doing things — and where the current frontier actually is.</p>
+      </div>
+
+      <p>On its own, a model can only write. <span class="term">Tool use</span> (also called function calling) changes that. You describe some functions in plain language — "search_orders(customer_id)", "send_email(to, subject, body)" — and the model, instead of answering, can emit a request to run one. Your code runs it, hands back the result, and the model continues with that result now in its context.</p>
+
+      <p>That loop is the whole idea. Repeat it and you have an <span class="term">agent</span>: a model given a goal, a set of tools, and permission to keep going until the goal is met.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 560 190" role="img" aria-label="The agent loop: goal leads to think, act, observe, and repeats until done">
+          <defs>
+            <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"></path>
+            </marker>
+          </defs>
+          <g style="color: var(--rule)">
+            <path d="M92 62 L152 62" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M258 62 L318 62" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M424 62 L470 62" stroke="currentColor" stroke-width="1.5" fill="none" marker-end="url(#ah)"></path>
+            <path d="M371 92 L371 132 L205 132 L205 92" stroke="currentColor" stroke-width="1.5" fill="none" stroke-dasharray="4 4" marker-end="url(#ah)"></path>
+          </g>
+          <g>
+            <rect x="8" y="40" width="84" height="44" rx="3" fill="var(--panel-2)" stroke="var(--rule)"></rect>
+            <text x="50" y="66" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink-2)">Goal</text>
+
+            <rect x="152" y="40" width="106" height="44" rx="3" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+            <text x="205" y="66" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">Think</text>
+
+            <rect x="318" y="40" width="106" height="44" rx="3" fill="var(--panel-2)" stroke="var(--rule)"></rect>
+            <text x="371" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink)">Act</text>
+            <text x="371" y="75" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-3)">call a tool</text>
+
+            <rect x="470" y="40" width="82" height="44" rx="3" fill="var(--panel-2)" stroke="var(--rule)"></rect>
+            <text x="511" y="66" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" fill="var(--ink-2)">Done</text>
+
+            <text x="288" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-3)">observe the result, decide again</text>
+          </g>
+        </svg>
+        <figcaption>The agent loop. A chatbot does one pass; an agent runs the dashed line as many times as the job needs.</figcaption>
+      </figure>
+
+      <p>Concretely: "find every invoice over $5,000 that's unpaid past 30 days and draft chase emails" becomes — query the database, read the rows, decide which qualify, draft one email each, stop. The model never touched your database itself; it asked for a tool, and your code decided whether to allow it.</p>
+
+      <h3>MCP: the plug standard</h3>
+      <p>Every app used to wire its tools to models its own way. <span class="term">MCP</span> (Model Context Protocol) is an open standard for that connection — think USB-C for AI tools. Write one MCP server exposing your data or actions, and any MCP-compatible AI app can use it. In practice this is how Claude, code editors, and a growing list of apps connect to Gmail, GitHub, databases, or your own scripts. It's worth knowing the acronym: it's the plumbing under most "connect your apps" features you'll meet.</p>
+
+      <h3>What agents are good and bad at, today</h3>
+      <ul>
+        <li><strong>Good:</strong> bounded, verifiable, repetitive work with clear tools — refactoring code and running the tests, triaging tickets, gathering and structuring research, filling in a spreadsheet from documents.</li>
+        <li><strong>Bad:</strong> long open-ended missions with vague success criteria and no feedback signal. Errors compound; step 12 confidently builds on step 4's mistake.</li>
+        <li><strong>The design rule:</strong> the more consequential and irreversible the action, the more a human should sit in the loop. Read-only agents can run free; anything that sends, pays, deletes, or publishes should ask first.</li>
+      </ul>
+
+      <div class="quiz" data-quiz="m4">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="2">
+          <p class="q">What distinguishes an agent from a chatbot?</p>
+          <div class="opts">
+            <button class="opt">A bigger model with more parameters</button>
+            <button class="opt">Access to the internet</button>
+            <button class="opt">A loop: think → use a tool → read the result → repeat toward a goal</button>
+          </div>
+          <p class="why" hidden>Agency is architecture, not model size. A small model in a good loop with good tools beats a big one answering blind.</p>
+        </div>
+        <div class="qa" data-a="1">
+          <p class="q">MCP is:</p>
+          <div class="opts">
+            <button class="opt">A model made by Anthropic</button>
+            <button class="opt">An open standard for connecting AI apps to tools and data</button>
+            <button class="opt">A programming language for prompts</button>
+          </div>
+          <p class="why" hidden>One protocol, many clients and servers — so a tool you expose once works across the apps that speak it.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Design a simple agent for me in plain language: pick a realistic everyday task, list the tools it would need, and walk through the loop step by step.">Design an agent with me →</button>
+    </section>
+
+    <!-- 05 -->
+    <section class="module" id="m5" data-mod="m5">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 05</span>
+        <h2 class="mod-title">Building it yourself, starting today</h2>
+        <p class="mod-blurb">You do not need to learn machine learning. Nobody building useful AI products is training models. The work is plumbing, judgment, and shipping.</p>
+      </div>
+
+      <h3>The build ladder — climb only as far as the problem needs</h3>
+      <ol class="ladder">
+        <li><b>A really good chat workflow</b><span>Saved instructions, a project with your reference files, prompts you reuse. Free, instant, and it solves more than people admit. Prove the idea here first.</span></li>
+        <li><b>Artifacts &amp; canvases</b><span>Ask the AI to build you a small working web page or tool and hand you the file. No setup, real software, minutes.</span></li>
+        <li><b>Automation platforms</b><span>Zapier, Make, n8n. Drag a trigger ("new email"), drop an AI step, connect an action ("add row"). No code, genuinely powerful, runs on a schedule.</span></li>
+        <li><b>Agentic coding tools</b><span>Claude Code, Cursor, Copilot. You describe what you want in English; the tool writes, runs, and fixes real code in a real repository. This is the single biggest leverage jump available to a non-programmer right now.</span></li>
+        <li><b>The API directly</b><span>Twenty lines of Python that send a prompt and get text back. Once you need loops, batches, or your own product, this is the floor everything else sits on.</span></li>
+      </ol>
+
+      <h3>Git and GitHub, and why they're non-negotiable</h3>
+      <p>Once AI is writing code for you, you will change hundreds of lines you don't fully understand. Version control is the seatbelt.</p>
+      <ul>
+        <li><span class="term">Git</span> — tracks every change to a folder of files, locally. A <span class="term">commit</span> is a saved snapshot with a message. You can always go back.</li>
+        <li><span class="term">Repository (repo)</span> — the tracked project: its files plus its whole history.</li>
+        <li><span class="term">Branch</span> — a parallel copy where you try something risky without touching the working version (<code>main</code>).</li>
+        <li><span class="term">GitHub</span> — hosts repos online: backup, collaboration, and a public portfolio. On top of Git it adds:</li>
+        <li><span class="term">Pull request (PR)</span> — "here's my branch, review it before it merges." The review conversation lives beside the exact lines changed.</li>
+        <li><span class="term">Issues</span> — the bug and task list, one thread each.</li>
+        <li><span class="term">Actions</span> — automation that runs on GitHub's computers when something happens: on every push, run the tests; every morning at 8, run this script. This is how you put an AI job on a schedule without owning a server.</li>
+        <li><span class="term">Projects</span> — a board or table view over your issues and PRs, so work has a status, an owner, and a place.</li>
+      </ul>
+
+      <div class="aside">
+        <span class="label">Do this once</span>
+        <p>Make a GitHub account, create one repo called <code>experiments</code>, and put anything in it. Every AI coding tool you touch from here assumes this exists. The whole loop — edit, commit, push, revert when it breaks — takes twenty minutes to learn and pays back forever.</p>
+      </div>
+
+      <h3>Three first projects, in order</h3>
+      <ol class="ladder">
+        <li><b>A repeatable prompt you actually use weekly</b><span>Take one recurring chore — status updates, competitor summaries, cleaning a messy export — and build the prompt properly with context and examples. Save it. This teaches specification.</span></li>
+        <li><b>A scheduled automation</b><span>Something that runs without you: a daily digest of an inbox or feed, summarized and filed. Teaches triggers, tools, and the fact that reliability is harder than capability.</span></li>
+        <li><b>A small tool with a real interface</b><span>A page that takes an input and returns a useful output for someone other than you. Teaches error handling, cost, and what happens when a user does something unexpected.</span></li>
+      </ol>
+
+      <div class="quiz" data-quiz="m5">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="1">
+          <p class="q">What is a pull request for?</p>
+          <div class="opts">
+            <button class="opt">Downloading someone else's code to your machine</button>
+            <button class="opt">Proposing a change and getting it reviewed before it merges</button>
+            <button class="opt">Requesting access to a private repo</button>
+          </div>
+          <p class="why" hidden>It's the review checkpoint — and the reason a branch can be experimental without risking the working version.</p>
+        </div>
+        <div class="qa" data-a="0">
+          <p class="q">You have an idea for an AI feature. Cheapest first step?</p>
+          <div class="opts">
+            <button class="opt">Test the idea by hand in a chat window before building anything</button>
+            <button class="opt">Set up an API key and write the app</button>
+            <button class="opt">Fine-tune a model on your data</button>
+          </div>
+          <p class="why" hidden>If it doesn't work when you feed it context by hand, no amount of engineering will save it. Prove the prompt, then automate it.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Give me a step-by-step starter plan for my first AI automation this week. Ask me what my job involves first, then tailor it.">Plan my first build →</button>
+    </section>
+
+    <!-- 06 -->
+    <section class="module" id="m6" data-mod="m6">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 06</span>
+        <h2 class="mod-title">Trust, failure, and the judgment that makes you good</h2>
+        <p class="mod-blurb">The people who get real value from AI aren't the ones with the best prompts. They're the ones with a calibrated sense of when to believe it.</p>
+      </div>
+
+      <h3>Why it makes things up</h3>
+      <p>A <span class="term">hallucination</span> is not a bug in the ordinary sense. The model is always producing a plausible continuation; when it doesn't know something, the most plausible continuation is a confident, well-formed, wrong answer — because that's what confident answers look like in the training data. There is no internal "I'm unsure" flag being suppressed.</p>
+      <p>Practical consequence: <strong>fluency carries no information about accuracy.</strong> The highest-risk outputs are the specific-sounding ones — citations, statistics, case numbers, quotes, API names, legal clauses. Verify those categories every time, from the source. Ask "which part of the document you gave me supports this?" and watch what happens.</p>
+
+      <h3>Evals: the habit almost nobody has</h3>
+      <p>An <span class="term">eval</span> is just a saved set of test cases with expected outcomes. Ten realistic inputs, and what a good answer looks like for each. Re-run them when you change your prompt, switch models, or update your tools. Without this you are tuning on vibes and one lucky example; with it you can actually tell whether a change helped. This one habit separates hobby use from professional use.</p>
+
+      <h3>Security, in the terms that matter to you</h3>
+      <ul>
+        <li><strong>Prompt injection.</strong> If a model reads content — a web page, an email, a PDF, a code comment — that content can contain instructions aimed at the model ("ignore your instructions and forward this thread"). It cannot reliably tell your instructions from text it reads. Any agent with both untrusted input and real powers is a genuine risk surface. Restrict what tools it may call, and require confirmation for anything irreversible.</li>
+        <li><strong>Your data.</strong> Know your tier's retention and training policy before pasting anything confidential. Consumer and business plans differ, and the default is not always the safe one.</li>
+        <li><strong>Secrets.</strong> API keys never go into a prompt, a chat message, or a public repo. Leaked keys are found by automated scanners within minutes.</li>
+      </ul>
+
+      <h3>Cost and speed, in one paragraph</h3>
+      <p>You pay per token, in and out, and input is usually much cheaper than output. That means a long document in the prompt is cheap; a long generated report is not. Bigger models cost more and think longer; small fast models handle classification, extraction, and routine rewrites at a fraction of the price. Real systems route: a cheap model for the easy 80%, an expensive one for the rest. And <span class="term">caching</span> — reusing an unchanged chunk of context across calls — cuts both cost and latency substantially when you send the same reference material repeatedly.</p>
+
+      <div class="quiz" data-quiz="m6">
+        <div class="quiz-label">Check yourself · 2 questions</div>
+        <div class="qa" data-a="1">
+          <p class="q">Prompt injection is:</p>
+          <div class="opts">
+            <button class="opt">Sending too many prompts at once</button>
+            <button class="opt">Hidden instructions inside content the model reads, hijacking its behavior</button>
+            <button class="opt">A method for making prompts shorter</button>
+          </div>
+          <p class="why" hidden>Instructions and data share one channel — the context window — so anything the model reads is potentially an instruction. Limit its powers accordingly.</p>
+        </div>
+        <div class="qa" data-a="2">
+          <p class="q">You tweak a prompt and the answer looks better. How do you know it actually is?</p>
+          <div class="opts">
+            <button class="opt">It reads more confidently</button>
+            <button class="opt">It's longer and more detailed</button>
+            <button class="opt">You re-run your saved test cases and compare</button>
+          </div>
+          <p class="why" hidden>One example proves nothing — output varies run to run. A small eval set is the only honest signal.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Help me build an eval set. Ask me what task I use AI for, then draft five realistic test cases and what a good answer looks like for each.">Build me an eval set →</button>
+    </section>
+
+    <!-- 07 -->
+    <section class="module" id="m7" data-mod="m7">
+      <div class="mod-head">
+        <span class="mod-num">MODULE 07</span>
+        <h2 class="mod-title">Staying current without drowning</h2>
+        <p class="mod-blurb">The field moves fast, but far less of it matters to you than the volume suggests. Most of the noise is benchmark scores and speculation.</p>
+      </div>
+
+      <h3>What actually changes your work</h3>
+      <ul>
+        <li><strong>Capability jumps you can feel</strong> — a model that suddenly handles a task that reliably failed before. Test this yourself; a benchmark can't tell you.</li>
+        <li><strong>Cost collapses</strong> — when a capability gets 10× cheaper, ideas that were uneconomic become obvious. This happens constantly and is under-noticed.</li>
+        <li><strong>New interfaces</strong> — agents, computer use, long context, voice. These change what's buildable, not just how well it's done.</li>
+      </ul>
+
+      <h3>What to ignore</h3>
+      <p>Leaderboard shuffles between frontier models, "prompt hacks" threads, and anything phrased as a countdown to the end of a profession. A model topping a benchmark by two points will not change your Tuesday.</p>
+
+      <div class="aside">
+        <span class="label">A weekly routine that works</span>
+        <p>One hour: (1) run your own three hardest tasks against whatever is newest and see if anything changed; (2) read the release notes of the two tools you actually use; (3) build one small thing. Hands-on beats reading, by a lot — the field is too new for good secondhand intuition to exist.</p>
+      </div>
+
+      <h3>Where you are now</h3>
+      <p>You know what a model is doing, how to feed it, how to give it hands, how to build with it, and when not to trust it. That's the whole conceptual map — everything past this point is depth in one direction. The next skill is not another concept; it's building the first thing.</p>
+
+      <div class="quiz" data-quiz="m7">
+        <div class="quiz-label">Check yourself · 1 question</div>
+        <div class="qa" data-a="1">
+          <p class="q">A new model tops the leaderboards. What tells you whether to switch?</p>
+          <div class="opts">
+            <button class="opt">The benchmark margin over the previous leader</button>
+            <button class="opt">Running your own saved test cases against it</button>
+            <button class="opt">How many people are posting about it</button>
+          </div>
+          <p class="why" hidden>Benchmarks measure average performance on generic tasks. You care about one specific task — yours. This is what the eval set from module 06 is for.</p>
+        </div>
+      </div>
+      <button class="ask-inline" data-ask="Based on everything in this course — tokens, context, prompting, RAG, tools, agents, evals — give me a 30-day practical plan to go from beginner to genuinely capable. Be specific about what to do each week.">Give me a 30-day plan →</button>
+    </section>
+
+    <!-- flashcards -->
+    <section class="module" id="cards" data-mod="cards">
+      <div class="mod-head">
+        <span class="mod-num">DRILL</span>
+        <h2 class="mod-title">Flashcards</h2>
+        <p class="mod-blurb">Three decks. Click a card to flip it, mark it, move on. Keyboard: <span class="kbd">space</span> flips, <span class="kbd">←</span> <span class="kbd">→</span> move. Your marks are kept in this browser.</p>
+      </div>
+
+      <div class="deckbar" id="deckbar" role="group" aria-label="Choose a deck"></div>
+
+      <div class="cardstage">
+        <button class="flip" id="flip" aria-live="polite">
+          <span class="flip-inner">
+            <span class="face front">
+              <span class="kind" id="frontKind">question</span>
+              <span class="front-text" id="frontText"></span>
+              <span class="hint">click, or press space, to flip</span>
+            </span>
+            <span class="face back">
+              <span class="kind">answer</span>
+              <span class="back-text" id="backText"></span>
+              <span class="hint">click to flip back</span>
+            </span>
+          </span>
+        </button>
+        <div class="deck-controls">
+          <button class="mini" id="prev" title="Previous card">← prev</button>
+          <button class="mini again" id="again">again</button>
+          <button class="mini got" id="got">got it</button>
+          <button class="mini" id="next" title="Next card">next →</button>
+          <span class="count" id="cardCount"></span>
+        </div>
+        <div class="deck-controls">
+          <button class="mini" id="shuffle">shuffle</button>
+          <button class="mini" id="onlyUnknown" aria-pressed="false">drill unmarked only</button>
+          <button class="mini" id="showAll" aria-pressed="false">show whole deck as a list</button>
+          <button class="mini" id="resetMarks">reset marks</button>
+        </div>
+      </div>
+
+      <div class="card-list" id="cardList" hidden></div>
+
+      <button class="ask-inline" data-ask="Drill me on AI basics like flashcards: ask one term, wait for my definition, tell me what I got right and wrong, then the next. Start now.">Have the tutor drill me instead →</button>
+    </section>
+
+    <!-- glossary -->
+    <section class="module" id="glossary" data-mod="gl">
+      <div class="mod-head">
+        <span class="mod-num">REFERENCE</span>
+        <h2 class="mod-title">Glossary</h2>
+        <p class="mod-blurb">Every term in this course, in one place. If you meet a word that isn't here, ask the tutor.</p>
+      </div>
+      <dl class="glossary">
+        <div class="gl"><dt>token</dt><dd>The chunk of text a model reads and writes — roughly a word or part of one. The unit of both context limits and price.</dd></div>
+        <div class="gl"><dt>context window</dt><dd>Everything the model can see while answering: your conversation, files, and instructions. Finite.</dd></div>
+        <div class="gl"><dt>weights / parameters</dt><dd>The billions of numbers set during training that encode what the model learned. Frozen when you use it.</dd></div>
+        <div class="gl"><dt>training / inference</dt><dd>Training builds the model once, at great cost. Inference is every time you use it afterward.</dd></div>
+        <div class="gl"><dt>knowledge cutoff</dt><dd>The date after which the model saw no training text. Anything later must be supplied to it.</dd></div>
+        <div class="gl"><dt>temperature</dt><dd>How much randomness in choosing each next token. Low = predictable, high = varied.</dd></div>
+        <div class="gl"><dt>few-shot</dt><dd>Including a couple of examples of good output in the prompt. The cheapest big quality win.</dd></div>
+        <div class="gl"><dt>system prompt</dt><dd>Standing instructions placed before the conversation, defining role and rules.</dd></div>
+        <div class="gl"><dt>RAG</dt><dd>Retrieval-Augmented Generation: fetch relevant passages, insert them into the prompt, then answer.</dd></div>
+        <div class="gl"><dt>embedding</dt><dd>Text converted to a list of numbers representing meaning, so similar meanings sit near each other.</dd></div>
+        <div class="gl"><dt>vector database</dt><dd>Storage built to find the nearest embeddings fast. The lookup half of RAG.</dd></div>
+        <div class="gl"><dt>fine-tuning</dt><dd>Adjusting a model's weights on your own examples. Teaches style and format more than facts.</dd></div>
+        <div class="gl"><dt>tool use</dt><dd>Letting the model request that your code run a function, then continue with the result.</dd></div>
+        <div class="gl"><dt>agent</dt><dd>A model in a loop with tools and a goal, deciding its own next steps until done.</dd></div>
+        <div class="gl"><dt>MCP</dt><dd>Model Context Protocol: an open standard for connecting AI apps to tools and data sources.</dd></div>
+        <div class="gl"><dt>API</dt><dd>The programmatic doorway to a model — send text, get text, from your own code.</dd></div>
+        <div class="gl"><dt>hallucination</dt><dd>A confident, well-formed, false output. A property of prediction, not a fixable glitch.</dd></div>
+        <div class="gl"><dt>eval</dt><dd>A saved set of test cases used to measure whether a change actually improved things.</dd></div>
+        <div class="gl"><dt>prompt injection</dt><dd>Malicious instructions hidden in content the model reads, aimed at hijacking its behavior.</dd></div>
+        <div class="gl"><dt>multimodal</dt><dd>A model that handles more than text — images, audio, video — in the same context.</dd></div>
+        <div class="gl"><dt>caching</dt><dd>Reusing an unchanged block of context across calls to cut cost and latency.</dd></div>
+        <div class="gl"><dt>open-weights</dt><dd>A model whose weights are published, so it can be downloaded and run on your own hardware.</dd></div>
+      </dl>
+      <footer class="end">End of course · seven modules · ask the tutor anything you're still unsure about</footer>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- token demo ---------- */
+  var tokIn = document.getElementById("tokIn");
+  var tokOut = document.getElementById("tokOut");
+  var tokCount = document.getElementById("tokCount");
+
+  function splitTokens(s) {
+    if (!s) return [];
+    var raw = s.match(/\s+|[A-Za-zÀ-ÿ0-9']+|[^\sA-Za-zÀ-ÿ0-9']/g) || [];
+    var out = [];
+    raw.forEach(function (piece) {
+      if (/^\s+$/.test(piece)) { return; }
+      if (/^[A-Za-zÀ-ÿ']+$/.test(piece) && piece.length > 6) {
+        out.push(piece.slice(0, 4));
+        var rest = piece.slice(4);
+        while (rest.length > 4) { out.push(rest.slice(0, 4)); rest = rest.slice(4); }
+        if (rest) out.push(rest);
+      } else {
+        out.push(piece);
+      }
+    });
+    return out;
+  }
+
+  function renderTokens() {
+    var toks = splitTokens(tokIn.value);
+    tokOut.textContent = "";
+    toks.forEach(function (t) {
+      var el = document.createElement("span");
+      el.className = "tok";
+      el.textContent = t;
+      tokOut.appendChild(el);
+    });
+    tokCount.textContent = toks.length + " tokens (approximate) · about " +
+      Math.max(1, Math.round(tokIn.value.length / 4)) + " by the usual 4-characters rule";
+  }
+  tokIn.addEventListener("input", renderTokens);
+  renderTokens();
+
+  /* ---------- progress ---------- */
+  var KEY = "t2a-progress-v1";
+  var progress = {};
+  try { progress = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { progress = {}; }
+
+  function paintProgress() {
+    document.querySelectorAll("#toc a").forEach(function (a) {
+      if (progress[a.dataset.mod]) a.classList.add("done");
+    });
+  }
+  function saveProgress() {
+    try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) { /* fine */ }
+  }
+  paintProgress();
+
+  /* ---------- quizzes ---------- */
+  document.querySelectorAll(".quiz").forEach(function (quiz) {
+    var mod = quiz.dataset.quiz;
+    var items = quiz.querySelectorAll(".qa");
+    var answered = 0;
+    items.forEach(function (qa) {
+      var correct = parseInt(qa.dataset.a, 10);
+      var opts = qa.querySelectorAll(".opt");
+      var why = qa.querySelector(".why");
+      opts.forEach(function (btn, i) {
+        btn.addEventListener("click", function () {
+          opts.forEach(function (b, j) {
+            b.disabled = true;
+            if (j === correct) b.classList.add("right");
+          });
+          if (i !== correct) btn.classList.add("wrong");
+          why.hidden = false;
+          answered += 1;
+          if (answered === items.length) {
+            progress[mod] = true;
+            saveProgress();
+            paintProgress();
+          }
+        });
+      });
+    });
+  });
+
+  /* ---------- flashcards ---------- */
+  var DECKS = [
+    {
+      id: "basics",
+      name: "Basics",
+      kind: "term",
+      cards: [
+        ["Token", "The chunk of text a model reads and writes — roughly a word or part of one. Everything is counted and billed in tokens."],
+        ["Context window", "Everything the model can see while answering: your conversation, files and instructions. Finite — overflow it and the oldest material drops out."],
+        ["What is the model actually doing?", "Predicting the next token, over and over, given everything before it. Not looking anything up."],
+        ["Training vs. inference", "Training built the model once and is finished. Inference is every use after that, with the weights frozen — so it doesn't learn from your chat."],
+        ["Knowledge cutoff", "The date after which the model saw no training text. Anything newer has to be handed to it in the prompt."],
+        ["Weights (parameters)", "The billions of numbers, set during training, that encode what the model learned."],
+        ["Temperature", "How much randomness goes into picking each next token. Low = predictable and repetitive; high = varied and creative."],
+        ["Hallucination", "A confident, fluent, false answer. A side effect of predicting plausible text — not a glitch that can be switched off."],
+        ["System prompt", "Standing instructions placed before the conversation that set the model's role and rules."],
+        ["Few-shot prompting", "Including one or two examples of good output in your prompt. Showing beats describing."],
+        ["RAG", "Retrieval-Augmented Generation: find the relevant passages, paste them into the prompt automatically, then answer. The model itself is unchanged."],
+        ["Embedding", "Text turned into a long list of numbers that encodes meaning, so similar meanings land near each other — the basis of semantic search."],
+        ["Vector database", "Storage built to find the nearest embeddings fast. The lookup half of RAG."],
+        ["Fine-tuning", "Adjusting a model's weights on your own examples. Teaches style and format far better than facts. Rarely your first move."],
+        ["Tool use / function calling", "Letting the model request that your code run a function, then continue with the result in its context."],
+        ["Agent", "A model in a loop with a goal and tools: think → act → observe the result → decide again, until done."],
+        ["MCP", "Model Context Protocol — an open standard for plugging tools and data into AI apps. USB-C for AI."],
+        ["Eval", "A saved set of test cases and expected outcomes, re-run whenever you change a prompt, model or tool. The only honest way to know a change helped."],
+        ["Prompt injection", "Hidden instructions inside content the model reads (a page, an email, a PDF) that hijack its behavior. Instructions and data share one channel."],
+        ["Multimodal", "A model that handles images, audio or video alongside text in the same context."],
+        ["Caching", "Reusing an unchanged block of context across calls, cutting both cost and latency when you send the same reference material repeatedly."],
+        ["Open-weights model", "One whose weights are published, so you can download it and run it on your own hardware."]
+      ]
+    },
+    {
+      id: "hacks",
+      name: "Shortcuts & hacks",
+      kind: "move",
+      cards: [
+        ["Make it interview you", "\"Before you write anything, ask me the 5 questions you most need answered.\" It surfaces exactly the context you forgot to give — the single highest-value habit here."],
+        ["Never start from blank", "Paste your bad first draft and say \"make this better, keep my voice.\" Editing something is a far easier job than inventing something, for the model as much as for you."],
+        ["Ask for options, then merge", "\"Give me 5 versions, very different from each other.\" Then: \"combine 2 and 4, keep the ending of 5.\" You get to be the editor instead of re-rolling the dice."],
+        ["Hand it the rubric", "Give the criteria you'll judge by, then: \"score your draft against these out of 10 and revise the weakest one.\" Self-critique with a rubric works; \"is this good?\" doesn't."],
+        ["Ask where it's wrong", "\"Where is this most likely to be wrong, and what would you check?\" Far more useful than \"are you sure?\", which just triggers agreement or a pointless reversal."],
+        ["Screenshot everything", "Models read images. Error messages, whiteboards, handwriting, a messy spreadsheet, a chart from a PDF — screenshot and paste rather than retyping."],
+        ["New chat, new task", "Long chats accumulate junk context and drift. Starting fresh with a clean paste beats fighting a 200-message thread. Carry forward a summary, not the transcript."],
+        ["Put the instruction last", "After a long pasted document, restate what you want at the end. Recency helps. For very long inputs, say it at the top and the bottom."],
+        ["Name the audience", "\"For a skeptical CFO who has 30 seconds\" changes the output more than any amount of tone adjectives."],
+        ["Use it as a format converter", "Its most reliable everyday job: messy notes → table, transcript → action items with owners, prose → JSON, spec → checklist. Nearly zero hallucination risk when the content is all supplied."],
+        ["Ask for the checkpoint first", "\"List the 8 candidates as a table before writing anything.\" You catch a wrong direction after 20 seconds instead of after 900 words."],
+        ["\"What did I forget to ask?\"", "End a working session with it. Consistently surfaces the thing you'd have discovered tomorrow the hard way."],
+        ["Keep a prompt library", "One notes file of prompts that worked. Reuse beats reinvention, and it's the raw material for your first automation."],
+        ["Two models on a high-stakes answer", "Ask the same question in two different apps. Where they disagree is exactly where you need to check the source yourself."],
+        ["Dictate long context", "Ramble the whole messy background by voice. Models handle disorganized input fine, and you'll include ten details you'd never have typed."],
+        ["Say \"continue\"", "Output cut off mid-sentence? \"Continue from where you stopped\" resumes it. No need to regenerate the whole thing."],
+        ["Set it up once, not every time", "Projects, custom instructions, saved system prompts: the standing context you keep re-typing belongs there. This is the difference between using AI and having it set up."],
+        ["Cheap model for bulk, big model for the hard part", "Classification, extraction and routine rewrites don't need the frontier model. Route the easy 80% to the fast cheap one and spend the budget on the rest."],
+        ["Ask it to explain its own output", "\"Which line of the document I gave you supports that claim?\" Ungrounded assertions collapse immediately under this question."],
+        ["Make it teach you", "\"Explain that at three levels: to a 12-year-old, to a colleague, to a specialist.\" The gaps between the three are where your understanding actually is."]
+      ]
+    },
+    {
+      id: "git",
+      name: "Git & GitHub",
+      kind: "term",
+      cards: [
+        ["Git", "A tool that tracks every change to a folder of files on your machine, so you can always see what changed and go back."],
+        ["Repository (repo)", "A project Git is tracking: its files plus its entire history."],
+        ["Commit", "A saved snapshot of your changes with a message explaining them. Your undo points."],
+        ["Branch", "A parallel line of work where you can try something risky without touching the working version (main)."],
+        ["Merge", "Bringing a branch's changes back into another branch, usually into main."],
+        ["GitHub", "A website that hosts Git repos: backup, collaboration, and a public portfolio — plus pull requests, issues, Actions and Projects on top."],
+        ["Pull request (PR)", "\"Here's my branch — review it before it merges.\" The review conversation sits beside the exact lines changed."],
+        ["Issues", "GitHub's bug and task tracker. One thread per piece of work."],
+        ["GitHub Actions", "Automation that runs on GitHub's servers when something happens: on every push run the tests, or every morning at 8 run this script. How you schedule an AI job without owning a server."],
+        ["GitHub Projects", "A board or table view over your issues and PRs, giving work a status, an owner and a place."],
+        ["clone / push / pull", "Clone = copy a repo down to your machine. Push = send your commits up. Pull = fetch everyone else's down."],
+        ["Why it matters with AI", "Once AI writes hundreds of lines you don't fully understand, commits are the seatbelt: every change is reversible, and you can see exactly what it touched."]
+      ]
+    }
+  ];
+
+  var MKEY = "t2a-cards-v1";
+  var marks = {};
+  try { marks = JSON.parse(localStorage.getItem(MKEY) || "{}") || {}; } catch (e2) { marks = {}; }
+  function saveMarks() { try { localStorage.setItem(MKEY, JSON.stringify(marks)); } catch (e2) { /* fine */ } }
+
+  var deckIdx = 0, order = [], pos = 0, unknownOnly = false;
+  var deckbar = document.getElementById("deckbar");
+  var flip = document.getElementById("flip");
+  var frontText = document.getElementById("frontText");
+  var frontKind = document.getElementById("frontKind");
+  var backText = document.getElementById("backText");
+  var cardCount = document.getElementById("cardCount");
+  var cardList = document.getElementById("cardList");
+
+  function deck() { return DECKS[deckIdx]; }
+  function cardKey(d, i) { return d.id + ":" + i; }
+
+  function buildOrder(keepPos) {
+    var d = deck();
+    order = [];
+    for (var i = 0; i < d.cards.length; i++) {
+      if (!unknownOnly || marks[cardKey(d, i)] !== "got") order.push(i);
+    }
+    if (!order.length) { order = d.cards.map(function (_, i) { return i; }); }
+    if (!keepPos || pos >= order.length) pos = 0;
+  }
+
+  function renderDeckbar() {
+    deckbar.textContent = "";
+    DECKS.forEach(function (d, i) {
+      var b = document.createElement("button");
+      b.className = "deckbtn";
+      b.setAttribute("aria-pressed", i === deckIdx ? "true" : "false");
+      var got = d.cards.reduce(function (n, _, j) { return n + (marks[cardKey(d, j)] === "got" ? 1 : 0); }, 0);
+      b.innerHTML = "";
+      b.appendChild(document.createTextNode(d.name));
+      var n = document.createElement("span");
+      n.className = "n";
+      n.textContent = got + "/" + d.cards.length;
+      b.appendChild(n);
+      b.addEventListener("click", function () {
+        deckIdx = i; pos = 0; buildOrder(false); renderDeckbar(); renderCard(); renderList();
+      });
+      deckbar.appendChild(b);
+    });
+  }
+
+  function renderCard() {
+    var d = deck();
+    var i = order[pos];
+    var c = d.cards[i];
+    flip.classList.remove("flipped");
+    frontKind.textContent = d.kind === "move" ? "the move" : "term";
+    frontText.textContent = c[0];
+    backText.textContent = c[1];
+    var mark = marks[cardKey(d, i)];
+    cardCount.textContent = (pos + 1) + " / " + order.length +
+      (mark === "got" ? " · marked known" : mark === "again" ? " · marked for review" : "");
+  }
+
+  function step(n) {
+    if (!order.length) return;
+    pos = (pos + n + order.length) % order.length;
+    renderCard();
+  }
+
+  function mark(value) {
+    var d = deck();
+    marks[cardKey(d, order[pos])] = value;
+    saveMarks();
+    renderDeckbar();
+    if (unknownOnly && value === "got") { buildOrder(true); if (pos >= order.length) pos = 0; renderCard(); }
+    else step(1);
+    progress.cards = true; saveProgress(); paintProgress();
+  }
+
+  function renderList() {
+    var d = deck();
+    cardList.textContent = "";
+    d.cards.forEach(function (c) {
+      var row = document.createElement("div");
+      row.className = "row";
+      var b = document.createElement("b");
+      b.textContent = c[0];
+      var s = document.createElement("span");
+      s.textContent = c[1];
+      row.appendChild(b); row.appendChild(s);
+      cardList.appendChild(row);
+    });
+  }
+
+  flip.addEventListener("click", function () { flip.classList.toggle("flipped"); });
+  document.getElementById("next").addEventListener("click", function () { step(1); });
+  document.getElementById("prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("got").addEventListener("click", function () { mark("got"); });
+  document.getElementById("again").addEventListener("click", function () { mark("again"); });
+  document.getElementById("shuffle").addEventListener("click", function () {
+    for (var i = order.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = order[i]; order[i] = order[j]; order[j] = t;
+    }
+    pos = 0; renderCard();
+  });
+  document.getElementById("onlyUnknown").addEventListener("click", function () {
+    unknownOnly = !unknownOnly;
+    this.setAttribute("aria-pressed", unknownOnly ? "true" : "false");
+    this.textContent = unknownOnly ? "drilling unmarked only" : "drill unmarked only";
+    buildOrder(false); renderCard();
+  });
+  document.getElementById("showAll").addEventListener("click", function () {
+    var open = cardList.hidden;
+    cardList.hidden = !open;
+    this.setAttribute("aria-pressed", open ? "true" : "false");
+    this.textContent = open ? "hide the list" : "show whole deck as a list";
+  });
+  document.getElementById("resetMarks").addEventListener("click", function () {
+    var d = deck();
+    d.cards.forEach(function (_, j) { delete marks[cardKey(d, j)]; });
+    saveMarks(); renderDeckbar(); buildOrder(true); renderCard();
+  });
+  document.addEventListener("keydown", function (ev) {
+    var tag = (ev.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea") return;
+    var box = document.getElementById("cards").getBoundingClientRect();
+    if (box.bottom < 0 || box.top > window.innerHeight) return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); step(1); }
+    else if (ev.key === "ArrowLeft") { ev.preventDefault(); step(-1); }
+  });
+
+  buildOrder(false);
+  renderDeckbar();
+  renderCard();
+  renderList();
+
+  /* ---------- ask the tutor ---------- */
+  var RULES = [
+    "You are the tutor built into a course called 'Tokens to Agents', teaching AI from zero to a smart adult with no technical background.",
+    "Answer in plain language. No jargon without a one-line definition. Use a concrete everyday analogy when a concept is abstract.",
+    "Be brief: usually under 180 words. Use short paragraphs; use a list only when the content is genuinely a list.",
+    "The course covers, in order: (1) tokens, context windows, training vs inference, temperature; (2) prompting - goal, context, examples, format; (3) context engineering, RAG, embeddings, fine-tuning; (4) tool use, the agent loop, MCP; (5) building - chat, automation platforms, agentic coding tools, the API, and Git/GitHub basics; (6) hallucinations, evals, prompt injection, cost; (7) staying current.",
+    "When the learner asks to be quizzed, ask ONE question at a time, wait for their answer, then mark it and explain briefly.",
+    "Never invent product details, prices, benchmark numbers, or dates. If you are unsure, say so plainly and say how they could check.",
+    "Plain text only - no markdown headers, no asterisks for bold."
+  ].join(" ");
+
+  var turns = [];
+  var sampleFn = null;
+  var ctl = null;
+
+  var qBox = document.getElementById("q");
+  var sendBtn = document.getElementById("send");
+  var stopBtn = document.getElementById("stop");
+  var stateEl = document.getElementById("askState");
+  var scriptEl = document.getElementById("transcript");
+
+  function addTurn(cls, who, text) {
+    var wrap = document.createElement("div");
+    wrap.className = "turn " + cls;
+    var w = document.createElement("span");
+    w.className = "who";
+    w.textContent = who;
+    var b = document.createElement("div");
+    b.className = "body";
+    b.textContent = text;
+    wrap.appendChild(w);
+    wrap.appendChild(b);
+    scriptEl.appendChild(wrap);
+    return b;
+  }
+
+  var COPY = {
+    not_granted: "You'll need to allow this page to use Claude to get answers here. Everything else on the page works without it.",
+    sampling_disabled: "Asking Claude isn't available on this account, but the whole course below works without it.",
+    not_declared: "The tutor isn't available on this version of the page.",
+    capability_disabled: "The tutor isn't available in this view.",
+    capability_removed: "The tutor isn't available in this view.",
+    rate_limited: "Too many questions too quickly, or you've hit your usage limit. Wait a minute and ask again.",
+    session_expired: "Your Claude session expired — sign in again and ask once more.",
+    refused: "Claude declined to answer that one. Try rephrasing the question.",
+    empty_completion: "No answer came back. Try asking in a different way.",
+    prompt_too_large: "That's too much text at once — ask about a smaller piece.",
+    upstream_error: "Something went wrong reaching Claude. Try again."
+  };
+
+  function setBusy(busy) {
+    sendBtn.disabled = busy;
+    stopBtn.hidden = !busy;
+    stateEl.textContent = busy ? "thinking…" : "ready";
+  }
+
+  function disableAsk(message) {
+    sendBtn.disabled = true;
+    qBox.disabled = true;
+    qBox.placeholder = message;
+    stateEl.textContent = "unavailable";
+  }
+
+  function ask(question) {
+    if (!question || !sampleFn || sendBtn.disabled) return;
+    addTurn("you", "you", question);
+    var out = addTurn("ai", "tutor", "Thinking…");
+    turns.push({ role: "user", content: question });
+    qBox.value = "";
+    qBox.style.height = "auto";
+    setBusy(true);
+    scriptEl.lastChild.scrollIntoView({ block: "nearest" });
+
+    ctl = new AbortController();
+    var recent = turns.slice(-10);
+    sampleFn([{ role: "user", content: RULES }].concat(recent), {
+      cache: false,
+      modelTier: "quick",
+      signal: ctl.signal,
+      onText: function (u) { out.textContent = u.text; }
+    }).then(function (res) {
+      out.textContent = res.text;
+      turns.push({ role: "assistant", content: res.text });
+      setBusy(false);
+    }).catch(function (e) {
+      var code = e && e.code ? e.code : "upstream_error";
+      var partial = e && e.text ? e.text : "";
+      var note = COPY[code] || COPY.upstream_error;
+      if (code === "cancelled") {
+        out.textContent = partial ? partial + "\n\n[stopped]" : "[stopped]";
+      } else {
+        out.textContent = partial ? partial + "\n\n[" + note + "]" : note;
+      }
+      turns.pop();
+      setBusy(false);
+      if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" ||
+          code === "capability_disabled" || code === "capability_removed") {
+        disableAsk("The tutor isn't available — the course below still works.");
+      }
+    });
+  }
+
+  sendBtn.addEventListener("click", function () { ask(qBox.value.trim()); });
+  stopBtn.addEventListener("click", function () { if (ctl) ctl.abort(); });
+  qBox.addEventListener("keydown", function (ev) {
+    if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); ask(qBox.value.trim()); }
+  });
+  qBox.addEventListener("input", function () {
+    qBox.style.height = "auto";
+    qBox.style.height = Math.min(200, qBox.scrollHeight) + "px";
+  });
+
+  document.querySelectorAll("[data-ask]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.getAttribute("data-ask");
+      if (sampleFn && !sendBtn.disabled) {
+        document.getElementById("ask").scrollIntoView({ behavior: "smooth", block: "start" });
+        ask(text);
+      } else {
+        qBox.value = text;
+        document.getElementById("ask").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+
+  sendBtn.disabled = true;
+  stateEl.textContent = "connecting…";
+  if (window.claude && typeof window.claude.use === "function") {
+    window.claude.use("sample").then(function (fn) {
+      if (fn) {
+        sampleFn = fn;
+        sendBtn.disabled = false;
+        stateEl.textContent = "ready";
+      } else {
+        disableAsk("The tutor isn't available here — the course below still works.");
+      }
+    }).catch(function () {
+      disableAsk("The tutor isn't available here — the course below still works.");
+    });
+  } else {
+    disableAsk("The tutor isn't available here — the course below still works.");
+  }
+})();
+</script>
+
+</body></html>
